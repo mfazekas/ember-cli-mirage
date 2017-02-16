@@ -1,6 +1,6 @@
 import {module, test} from 'qunit';
 import { Model } from 'ember-cli-mirage';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import ActiveModelSerializer from 'ember-cli-mirage/serializers/active-model-serializer';
 import RestSerializer from 'ember-cli-mirage/serializers/rest-serializer';
 

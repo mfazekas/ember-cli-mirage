@@ -1,5 +1,5 @@
 import {module, test} from 'qunit';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import Model from 'ember-cli-mirage/orm/model';
 import PostShorthandRouteHandler from 'ember-cli-mirage/route-handlers/shorthands/post';
 import JSONAPISerializer from 'ember-cli-mirage/serializers/json-api-serializer';

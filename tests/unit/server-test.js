@@ -1,4 +1,5 @@
-import Server, { defaultPassthroughs } from 'ember-cli-mirage/server';
+import { defaultPassthroughs } from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import {module, test} from 'qunit';
 import { Model, Factory, belongsTo, hasMany, trait, association } from 'ember-cli-mirage';
 
@@ -1250,7 +1251,7 @@ test('server configures default passthroughs when useDefaultPassthroughs is true
   assert.expect(defaultPassthroughs.length);
   defaultPassthroughs.forEach((passthroughUrl) => {
     let passthroughRequest = { method: 'GET', url: passthroughUrl };
-    let isPassedThrough = server.pretender.checkPassthrough(passthroughRequest);
+    let isPassedThrough = server.interceptor.checkPassthrough(passthroughRequest);
 
     assert.ok(isPassedThrough);
   });
@@ -1264,7 +1265,7 @@ test('server does not configure default passthroughs when useDefaultPassthroughs
   assert.expect(defaultPassthroughs.length);
   defaultPassthroughs.forEach((passthroughUrl) => {
     let passthroughRequest = { method: 'GET', url: passthroughUrl };
-    let isPassedThrough = server.pretender.checkPassthrough(passthroughRequest);
+    let isPassedThrough = server.interceptor.checkPassthrough(passthroughRequest);
 
     assert.ok(!isPassedThrough);
   });

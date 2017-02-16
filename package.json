@@ -25,6 +25,8 @@
   "author": "Sam Selikoff",
   "license": "MIT",
   "devDependencies": {
+    "broccoli-funnel": "^1.1.0",
+    "broccoli-merge-trees": "^1.2.1",
     "active-model-adapter": "^2.0.3",
     "broccoli-asset-rev": "^2.4.5",
     "chai": "2.0.0",
@@ -51,7 +53,7 @@
     "ember-sinon": "0.5.1",
     "eslint-plugin-ember-suave": "^1.0.0",
     "loader.js": "^4.0.10",
-    "lodash": "3.10.1",
+    "lodash": "4.0",
     "mocha": "^2.1.0"
   },
   "keywords": [
@@ -73,6 +75,7 @@
     "ember-cli-node-assets": "^0.1.4",
     "ember-inflector": "^1.9.2",
     "ember-lodash": "^4.0",
+    "lodash": "4.0",
     "exists-sync": "0.0.3",
     "fake-xml-http-request": "^1.4.0",
     "faker": "^3.0.0",

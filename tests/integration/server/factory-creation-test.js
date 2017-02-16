@@ -1,6 +1,6 @@
 import { module, test } from 'qunit';
 import { Model, Factory, hasMany, belongsTo } from 'ember-cli-mirage';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 
 module('Integration | Server | Factory creation', {
   beforeEach() {

@@ -4,7 +4,6 @@ import { pluralize, camelize } from './utils/inflector';
 import { toCollectionName } from 'ember-cli-mirage/utils/normalize-name';
 import Ember from 'ember';
 import isAssociation from 'ember-cli-mirage/utils/is-association';
-import Pretender from 'pretender';
 import Db from './db';
 import Schema from './orm/schema';
 import assert from './assert';
@@ -18,48 +17,12 @@ import _isPlainObject from 'lodash/isPlainObject';
 
 const { RSVP: { Promise } } = Ember;
 
-/**
- * Creates a new Pretender instance.
- *
- * @method createPretender
- * @param {Server} server
- * @return {Object} A new Pretender instance.
- * @public
- */
-function createPretender(server) {
-  return new Pretender(function() {
-    this.passthroughRequest = function(verb, path, request) {
-      if (server.shouldLog()) {
-        console.log(`Passthrough request: ${verb.toUpperCase()} ${request.url}`);
-      }
-    };
-
-    this.handledRequest = function(verb, path, request) {
-      if (server.shouldLog()) {
-        console.log(`Mirage: [${request.status}] ${verb.toUpperCase()} ${request.url}`);
-        let { responseText } = request;
-        let loggedResponse;
-
-        try {
-          loggedResponse = JSON.parse(responseText);
-        } catch(e) {
-          loggedResponse = responseText;
-        }
-
-        console.log(loggedResponse);
-      }
-    };
-
-    this.unhandledRequest = function(verb, path) {
-      path = decodeURI(path);
-      assert(
-        `Your Ember app tried to ${verb} '${path}',
-         but there was no route defined to handle this request.
-         Define a route that matches this path in your
-         mirage/config.js file. Did you forget to add your namespace?`
-      );
-    };
-  });
+function createInterceptor(server) {
+  if (server.options.createInterceptor) {
+    return server.options.createInterceptor(server);
+  } else {
+    throw new Error(`Don't know how to create interceptor no createInterceptor was passed to server options: ${server.options}`);
+  }
 }
 
 const defaultRouteOptions = {
@@ -167,7 +130,7 @@ export default class Server {
     let hasFactories = this._hasModulesOfType(config, 'factories');
     let hasDefaultScenario = config.scenarios && config.scenarios.hasOwnProperty('default');
 
-    this.pretender = this.pretender || createPretender(this);
+    this.interceptor = this.interceptor || createInterceptor(this);
 
     if (config.baseConfig) {
       this.loadConfig(config.baseConfig);
@@ -254,7 +217,7 @@ export default class Server {
     verbs.forEach((verb) => {
       paths.forEach((path) => {
         let fullPath = this._getFullPath(path);
-        this.pretender[verb](fullPath, this.pretender.passthrough);
+        this.interceptor[verb](fullPath, this.interceptor.passthrough);
       });
     });
   }
@@ -407,7 +370,7 @@ export default class Server {
   }
 
   shutdown() {
-    this.pretender.shutdown();
+    this.interceptor.shutdown();
     if (this.environment === 'test') {
       window.server = undefined;
     }
@@ -477,7 +440,7 @@ export default class Server {
     let fullPath = this._getFullPath(path);
     let timing = options.timing !== undefined ? options.timing : (() => this.timing);
 
-    this.pretender[verb](
+    this.interceptor[verb](
       fullPath,
       (request) => {
         return new Promise(resolve => {

@@ -1,5 +1,5 @@
 import {module, test} from 'qunit';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import Model from 'ember-cli-mirage/orm/model';
 import Mirage from 'ember-cli-mirage';
 import DeleteShorthandRouteHandler from 'ember-cli-mirage/route-handlers/shorthands/delete';

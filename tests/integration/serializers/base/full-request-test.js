@@ -1,5 +1,5 @@
 import Mirage from 'ember-cli-mirage';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import Model from 'ember-cli-mirage/orm/model';
 import Serializer from 'ember-cli-mirage/serializer';
 import {module, test} from 'qunit';

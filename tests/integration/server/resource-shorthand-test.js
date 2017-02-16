@@ -1,6 +1,6 @@
 import {module, test} from 'qunit';
 import { Model, ActiveModelSerializer } from 'ember-cli-mirage';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 
 module('Integration | Server | Resource shorthand', {
   beforeEach() {

@@ -7,7 +7,7 @@ import {
   Response
 } from 'ember-cli-mirage';
 import Collection from 'ember-cli-mirage/orm/collection';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import GetShorthandRouteHandler from 'ember-cli-mirage/route-handlers/shorthands/get';
 
 module('Integration | Route Handlers | GET shorthand', {

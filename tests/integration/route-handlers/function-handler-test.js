@@ -1,7 +1,7 @@
 import { module, test } from 'qunit';
 import { Model, Collection, Serializer } from 'ember-cli-mirage';
 import Ember from 'ember';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import Response from 'ember-cli-mirage/response';
 import FunctionRouteHandler from 'ember-cli-mirage/route-handlers/function';
 import _uniqBy from 'lodash/uniqBy';

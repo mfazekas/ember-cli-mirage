@@ -1,5 +1,5 @@
 import {module, test} from 'qunit';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 
 module('Integration | Passthrough', {
   beforeEach() {
@@ -59,7 +59,7 @@ test('it can passthrough certain verbs for individual paths', function(assert) {
     });
     this.passthrough('/addresses', ['post']);
   });
-  server.pretender.unhandledRequest = function(/* verb, path */) {
+  server.interceptor.unhandledRequest = function(/* verb, path */) {
     assert.ok(true, 'it doesnt passthrough GET');
     done2();
   };

@@ -1,5 +1,5 @@
 import {module, test} from 'qunit';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import { Model, Factory } from 'ember-cli-mirage';
 
 module('Integration | Database', {

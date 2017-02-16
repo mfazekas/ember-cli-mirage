@@ -1,5 +1,5 @@
 import {module, test} from 'qunit';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 
 module('Integration | Server #loadFixtures', {
   beforeEach() {

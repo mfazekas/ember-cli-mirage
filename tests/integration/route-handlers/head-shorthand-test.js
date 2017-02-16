@@ -4,7 +4,7 @@ import {
   JSONAPISerializer,
   Response
 } from 'ember-cli-mirage';
-import Server from 'ember-cli-mirage/server';
+import Server from 'ember-cli-mirage/pretender-server';
 import HeadShorthandRouteHandler from 'ember-cli-mirage/route-handlers/shorthands/head';
 
 module('Integration | Route Handlers | HEAD shorthand', {
