@@ -2,7 +2,8 @@ import readModules from 'ember-cli-mirage/utils/read-modules';
 import ENV from '../config/environment';
 import baseConfig, { testConfig } from '../mirage/config';
 import Server from 'ember-cli-mirage/server';
-import createPretender from  'ember-cli-mirage/interceptors/create-pretender';
+import createPretender from 'ember-cli-mirage/interceptors/create-pretender';
+import createExpressMiddleware from 'ember-cli-mirage/interceptors/create-express-middleware';
 import _assign from 'lodash/assign';
 
 export default {
@@ -19,17 +20,32 @@ export default {
   }
 };
 
+var createInterceptor = createPretender;
+if (typeof FastBootMirage !== 'undefined') {
+  var router = FastBootMirage.expressRouter;
+  createInterceptor = function (server) { return createExpressMiddleware(server, router); }
+  if (_shouldUseMirage(ENV.environment, ENV['ember-cli-mirage'])) {
+    startMirage(ENV);
+  }
+}
+
 export function startMirage(env = ENV) {
   let environment = env.environment;
   let modules = readModules(env.modulePrefix);
   let options = _assign(modules, {environment, baseConfig, testConfig});
 
-  return new Server(Object.assign({createInterceptor: createPretender}, options));
+  return new Server(Object.assign({createInterceptor: createInterceptor}, options));
 }
 
 function _shouldUseMirage(env, addonConfig) {
   let userDeclaredEnabled = typeof addonConfig.enabled !== 'undefined';
   let defaultEnabled = _defaultEnabled(env, addonConfig);
+  if (typeof FastBoot !== 'undefined' && typeof FastBootMirage === 'undefined') {
+    return false
+  }
+  if (typeof FastBoot === 'undefined' && addonConfig.useExpress) {
+    return false
+  }
 
   return userDeclaredEnabled ? addonConfig.enabled : defaultEnabled;
 }

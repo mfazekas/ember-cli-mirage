@@ -3,48 +3,7 @@
 var path = require('path');
 var mergeTrees = require('broccoli-merge-trees');
 var Funnel = require('broccoli-funnel');
-
-function toNodeJSBuilder(projectRoot) {
-  var esTranspiler = require('broccoli-babel-transpiler');
-  var broccoli = require('broccoli-builder');
-
-  let appEnvPath = path.join(projectRoot, 'config', 'environment.js');
-  var appEnv = require(appEnvPath);
-
-  let appsMirageConfigPath = path.join(projectRoot, 'mirage');
-  var appsMirageConfigTranspiled = esTranspiler(appsMirageConfigPath, { browserPolyfill: true });
-
-  let emberCliMiragePath = __dirname;
-  let mirageAddon = Funnel(emberCliMiragePath, {srcDir: 'addon', destDir: 'ember-cli-mirage'});
-  var mirageAddonTranspiled = esTranspiler(mirageAddon, { browserPolyfill: true });
-
-  let emberDistDir = path.join(projectRoot, 'node_modules', "ember-source");
-  let emberDistSrc = Funnel(emberDistDir, {srcDir: 'dist', include: ['ember.debug.js'],
-    getDestinationPath: function(relativePath) {
-      if (relativePath === 'ember.debug.js') { return 'ember.js'; }
-      return relativePath;
-    }
-  });
-  var mirageNodeJSTree = mergeTrees([appsMirageConfigTranspiled, mirageAddonTranspiled, emberDistSrc]);
-  var builder = new broccoli.Builder(mirageNodeJSTree);
-  return builder;
-}
-
-function setupImportEmberFromNodeJSOutput(output) {
-  /* !!! Hack: add we need node.js module to locate our 'ember.js for `import ember` */
-  var Module = require('module').Module;
-  var ember = require(path.join(output.directory,'ember.js'));
-  Module.globalPaths.push(output.directory);
-  process.env['NODE_PATH'] = output.directory;
-  Module._initPaths();
-  return ember;
-}
-
-class ExpressInterceptor {}
-
-function createExpressInterceptor(server) {
-  return new ExpressInterceptor(); // TODO
-}
+var FastBoot = require('fastboot');
 
 module.exports = {
   name: 'ember-cli-mirage',
@@ -61,21 +20,29 @@ module.exports = {
     }
   },
 
-  serverMiddleware: function(config) {
-    if (this.addonBuildConfig.express) {
-      var builder = toNodeJSBuilder(this.app.project.root)
-      builder.build().then(function(output) {
-        var mirageConfig = require(path.join(output.directory,'config.js'));
-        var ember = setupImportEmberFromNodeJSOutput(output);
-        var scenario = require(path.join(output.directory,'scenarios','default.js'));
-        var server = require(path.join(output.directory,'ember-cli-mirage','server.js'));
-        let serverWithExpress = new server.default({createInterceptor: createExpressInterceptor.bind({expressApp: config.app})});
-        scenario(serverWithExpress);
-      }).catch(function(err) {
-        console.log('Error during build for node.js:', err);
-      }).finally(function() {
-        console.log('Build for node.js finished!');
+  serverMiddleware: function(options) {
+    if (this.addonConfig.useExpress) {
+      var _this = this;
+      var app = options.app;
+      this.expressRouter = require('express').Router();
+      var router = this.expressRouter;
+      app.use(function (req, resp, next) {
+        var broccoliHeader = req.headers['x-broccoli'];
+        var outputPath = broccoliHeader['outputPath'];
+        if (! _this.mirageOnNodeJS) {
+          _this.mirageOnNodeJS = new FastBoot({distPath: outputPath, sandboxGlobals: {
+            FastBootMirage: { expressRouter: router }}});
+        }
+        next();
       });
+      app.use(router);
+    }
+  },
+
+  postBuild: function(result) {
+    if (this.mirageOnNodeJS) {
+      this.expressRouter.stack = []
+      this.mirageOnNodeJS.reload({distPath: result.directory})
     }
   },
 
@@ -172,9 +139,6 @@ module.exports = {
   },
 
   _shouldIncludeFiles: function() {
-    if (process.env.EMBER_CLI_FASTBOOT) {
-      return false;
-    }
 
     var environment = this.app.env;
     var enabledInProd = environment === 'production' && this.addonConfig.enabled;
