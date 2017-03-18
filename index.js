@@ -40,6 +40,57 @@ module.exports = {
   },
 
   postBuild: function(result) {
+    var vendor_js = this.app.options.outputPaths.vendor.js
+    var app_js = this.app.options.outputPaths.app.js
+    var full_vendor = path.join(result.directory, vendor_js)
+    var full_app = path.join(result.directory, app_js)
+    console.log("this.app", this.app.name)
+    console.log("full_vendor", path.join(result.directory, vendor_js))
+    console.log("full_app", path.join(result.directory, app_js))
+    console.log("(ember-cli-mirage)[*] postBuild", result, result.directory)
+    var vm = require('vm')
+    var fs = require('fs')
+
+    var sandbox = {
+      // Convince jQuery not to assume it's in a browser
+      module: { exports: {} }
+    }
+    // set global as window
+    sandbox.window = sandbox
+    sandbox.window.self = sandbox
+
+    //sandbox.document.createElement("foo")
+    vm.createContext(sandbox)
+    var source = fs.readFileSync(full_vendor, 'utf8');
+    var fileScript = new vm.Script(source, { filename: full_vendor })
+    fileScript.runInContext(sandbox)
+
+    sandbox.document = {
+      querySelector: function (match) {
+        if (match === 'meta[name="ember-cli-mirage-fastboots-demo5/config/environment"') {
+          console.log("Query selector works!!!");
+          return {}
+        }
+        console.log("Query slector", match)
+        return {getAttribute: function(what) {
+          console.log("getAttribute", what);
+          return "{}"
+         }}
+      }
+    }
+    sandbox.setTimeout = function(fn,ms) { console.log("Set timeout", fn, ms) }
+    sandbox.FastBootMirage = {}
+    sandbox.console = console
+
+    var source = fs.readFileSync(full_app, 'utf8');
+    var fileScript = new vm.Script(source, { filename: full_app })
+    fileScript.runInContext(sandbox)
+    //console.log("Sandbox", sandbox)
+    console.log("Whadda", sandbox.requireModule.entries['ember-cli-mirage-fastboots-demo5/initializers/ember-cli-mirage'])
+    //sandbox.requireModule.entries['ember-cli-mirage-fastboots-demo5/initializers/ember-cli-mirage'].callback()
+    sandbox.require('ember-cli-mirage-fastboots-demo5/initializers/ember-cli-mirage')
+
+
     if (this.mirageOnNodeJS) {
       this.expressRouter.stack = []
       this.mirageOnNodeJS.reload({distPath: result.directory})
